@@ -1,0 +1,29 @@
+# dependencies
+node_modules/
+
+# next.js
+.next/
+.next-dev/
+out/
+next-env.d.ts
+*.tsbuildinfo
+
+# media pipeline cache (original downloads)
+.media-cache/
+
+# tests
+test-results/
+playwright-report/
+screenshots/
+
+# env
+.env
+.env*.local
+
+# misc
+.DS_Store
+Thumbs.db
+npm-debug.log*
+
+# Hostinger upload packages (npm run package)
+deploy/

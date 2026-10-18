@@ -1,0 +1,456 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* Don't generate classes from the reference mock-ups and QA output (e.g. the Stitch file's fonts) */
+@source not "../docs";
+@source not "../screenshots";
+@source not "../scripts";
+
+/* ------------------------------------------------------------------
+   Design tokens — the ONLY colours allowed (docs/PRD.md §6.1)
+------------------------------------------------------------------- */
+@theme {
+  --color-*: initial;
+  --color-navy: #003366;
+  --color-navy-deep: #001f3f;
+  --color-amber: #f4b221;
+  --color-ivory: #f7f4ee;
+  --color-mist: #eef3f8;
+  --color-white: #ffffff;
+  --color-ink: #0e1b2a;
+  --color-muted: #5a6a7d;
+  --color-hairline: rgb(0 51 102 / 0.12);
+
+  /* next/font adds a metric-matched fallback inside each variable */
+  --font-display: var(--font-barlow-condensed), sans-serif;
+  --font-sans: var(--font-barlow), sans-serif;
+  --font-mono: var(--font-b612-mono), monospace;
+
+  --breakpoint-xs: 25rem;
+
+  --animate-accordion-down: accordion-down 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-accordion-up: accordion-up 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes accordion-down {
+  from { height: 0; }
+  to { height: var(--radix-accordion-content-height); }
+}
+@keyframes accordion-up {
+  from { height: var(--radix-accordion-content-height); }
+  to { height: 0; }
+}
+@keyframes scroll-cue {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(200%); }
+}
+
+/* ------------------------------------------------------------------
+   Base
+------------------------------------------------------------------- */
+@layer base {
+  :root {
+    --header-h: 68px;
+    --gutter: 20px;
+    --focus: var(--color-navy);
+    color-scheme: light;
+  }
+  @media (min-width: 768px) { :root { --gutter: 32px; } }
+  @media (min-width: 1280px) { :root { --gutter: 60px; } }
+  @media (min-width: 1440px) { :root { --gutter: 80px; } }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-padding-top: calc(var(--header-h) + 16px);
+  }
+  body {
+    @apply bg-white font-sans text-ink;
+    font-size: 16px;
+    line-height: 1.65;
+    overflow-x: clip;
+  }
+  @media (min-width: 768px) { body { font-size: 17px; } }
+
+  h1, h2, h3, h4 { @apply font-display; text-wrap: balance; }
+  img, video, svg { display: block; }
+  ::selection { background: var(--color-amber); color: var(--color-navy); }
+
+  /* Focus: navy on light surfaces, amber on dark ones (.tone-dark) */
+  .tone-dark { --focus: var(--color-amber); }
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  /* Lenis */
+  html.lenis, html.lenis body { height: auto; }
+  .lenis.lenis-smooth { scroll-behavior: auto !important; }
+  .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+  .lenis.lenis-stopped { overflow: clip; }
+}
+
+/* ------------------------------------------------------------------
+   Layout + type
+------------------------------------------------------------------- */
+@layer components {
+  .container-x {
+    width: 100%;
+    max-width: calc(1280px + 2 * var(--gutter));
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+  }
+
+  /* Type scale: H1 72/44 · H2 52/34 · H3 26/22 (desktop/mobile), headings lh 1.0 */
+  .h1, .h2, .h3 { font-family: var(--font-display); line-height: 1; letter-spacing: -0.01em; }
+  .h1 { font-weight: 700; font-size: clamp(44px, 2.63vw + 34.1px, 72px); }
+  .h2 { font-weight: 700; font-size: clamp(34px, 1.69vw + 27.7px, 52px); }
+  .h3 { font-weight: 600; font-size: clamp(22px, 0.38vw + 20.6px, 26px); line-height: 1.05; }
+  .lead { font-size: 17px; line-height: 1.65; }
+  @media (min-width: 768px) { .lead { font-size: 18px; } }
+
+  /* B612 Mono: real numbers, dates, durations and small category labels only */
+  .label, .mono {
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .label { font-size: 12px; line-height: 1.5; }
+  @media (min-width: 768px) { .label { font-size: 13px; } }
+
+  /* Dashed amber route line (Pathway — the page's one route graphic) */
+  .dash-x {
+    height: 1px;
+    background-image: repeating-linear-gradient(to right, var(--color-amber) 0 8px, transparent 8px 14px);
+  }
+  .dash-y {
+    width: 1px;
+    background-image: repeating-linear-gradient(to bottom, var(--color-amber) 0 8px, transparent 8px 14px);
+  }
+
+  /* Secondary action: text + arrow, underline draws in on hover */
+  .link-arrow {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 4px;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 17px;
+    line-height: 1.2;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .link-arrow::before,
+  .link-arrow::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: currentColor;
+  }
+  .link-arrow::before { opacity: 0.3; }
+  .link-arrow::after {
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .link-arrow:hover::after,
+  .link-arrow:focus-visible::after,
+  .group:hover .link-arrow::after { transform: scaleX(1); }
+  .link-arrow svg { flex-shrink: 0; transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1); }
+  .link-arrow:hover svg,
+  .group:hover .link-arrow svg { transform: translateX(3px); }
+
+  /* Images that run to the viewport edge (desktop); full width on phones */
+  .bleed-x { margin-inline: calc(-1 * var(--gutter)); }
+  @media (min-width: 1024px) {
+    .bleed-x { margin-inline: 0; }
+    .lg-bleed-right { margin-right: calc(-1 * (var(--gutter) + max(0px, (100vw - 1280px - 2 * var(--gutter)) / 2))); }
+  }
+
+  /* Swipe row: native horizontal scroll with snap points below lg; the first card lines up
+     with the container edge and the next one peeks in. Above it the element's own grid
+     classes take over. */
+  @media (max-width: 1023.98px) {
+    .swipe-lg {
+      display: flex;
+      gap: 20px;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x mandatory;
+      scroll-padding-inline: var(--gutter);
+      padding-inline: var(--gutter);
+      margin-inline: calc(-1 * var(--gutter));
+      scrollbar-width: none;
+    }
+    .swipe-lg::-webkit-scrollbar { display: none; }
+    .swipe-lg > * { flex: none; scroll-snap-align: start; }
+  }
+
+  /* Always a swipe row (testimonial windows) */
+  .swipe-all {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--gutter);
+    padding-inline: var(--gutter);
+    margin-inline: calc(-1 * var(--gutter));
+    scrollbar-width: none;
+  }
+  .swipe-all::-webkit-scrollbar { display: none; }
+  .swipe-all > * { flex: none; scroll-snap-align: start; }
+  @media (min-width: 768px) { .swipe-all { gap: 28px; } }
+
+  /* Subtle hover-only lift (no resting shadows anywhere) */
+  .hover-shadow { transition: box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1); }
+  .hover-shadow:hover { box-shadow: 0 14px 30px -20px rgb(0 31 63 / 0.45); }
+
+  /* Card photo (inside a .card): slow, subtle zoom on hover */
+  .zoom-img { transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1); }
+  .card:hover .zoom-img { transform: scale(1.04); }
+
+  /* Card title: an amber underline draws in on hover */
+  .hover-underline {
+    background-image: linear-gradient(var(--color-amber), var(--color-amber));
+    background-repeat: no-repeat;
+    background-position: 0 100%;
+    background-size: 0% 2px;
+    padding-bottom: 4px;
+    transition: background-size 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .card:hover .hover-underline,
+  .card:focus-within .hover-underline { background-size: 100% 2px; }
+}
+
+/* ------------------------------------------------------------------
+   Aviation FX (components/fx) — illustrations only; motion is transform/opacity
+------------------------------------------------------------------- */
+@layer components {
+  /* CloudLayer: soft puffs made of radial gradients. The drift is the page's only loop and
+     runs only while the layer is on screen (.is-live, set by the motion runtime). */
+  .cloud-layer { position: absolute; pointer-events: none; --cloud: 255 255 255; }
+  .cloud-puff {
+    position: absolute;
+    border-radius: 9999px;
+    background: radial-gradient(closest-side, rgb(var(--cloud) / 0.96), rgb(var(--cloud) / 0.7) 42%, rgb(var(--cloud) / 0) 100%);
+    animation: cloud-drift var(--drift, 36s) ease-in-out var(--delay, 0s) infinite alternate;
+    animation-play-state: paused;
+  }
+  .cloud-layer.is-live .cloud-puff { animation-play-state: running; }
+
+  /* Altitude indicator: tick ladder */
+  .altitude-ticks {
+    background-image:
+      repeating-linear-gradient(to bottom, rgb(255 255 255 / 0.55) 0 1px, transparent 1px 12px),
+      repeating-linear-gradient(to bottom, rgb(255 255 255 / 0.8) 0 1px, transparent 1px 60px);
+    background-size: 6px 100%, 10px 100%;
+    background-repeat: no-repeat;
+    background-position: right top, right top;
+  }
+
+  /* Why Choose: aircraft window (thick ivory frame, inner shadow) */
+  .window-frame {
+    padding: 18px;
+    border-radius: 200px;
+    background: var(--color-ivory);
+    box-shadow:
+      inset 0 0 0 1px rgb(0 31 63 / 0.08),
+      inset 0 -10px 24px rgb(0 31 63 / 0.12),
+      0 40px 80px -40px rgb(0 0 0 / 0.65);
+  }
+  .window-glass {
+    position: relative;
+    overflow: hidden;
+    border-radius: 182px;
+    background: #9cc2e6;
+    isolation: isolate;
+    box-shadow: 0 0 0 6px rgb(0 31 63 / 0.06);
+  }
+  .window-glass::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow: inset 0 14px 30px rgb(0 31 63 / 0.45), inset 0 0 0 1px rgb(0 31 63 / 0.25);
+    background: linear-gradient(115deg, rgb(255 255 255 / 0.16) 0 18%, transparent 18% 100%);
+  }
+  @media (max-width: 1023.98px) {
+    .window-frame { padding: 12px; border-radius: 72px; }
+    .window-glass { border-radius: 60px; }
+  }
+
+  /* Testimonials: tall cabin windows */
+  .cabin-window {
+    padding: 10px;
+    border-radius: 999px;
+    background: var(--color-white);
+    box-shadow: 0 0 0 1px rgb(0 51 102 / 0.1), inset 0 -4px 10px rgb(0 31 63 / 0.06), 0 20px 40px -30px rgb(0 31 63 / 0.5);
+  }
+  .cabin-glass {
+    position: relative;
+    aspect-ratio: 9 / 16;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--color-navy-deep);
+    isolation: isolate;
+  }
+  .cabin-glass::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow: inset 0 12px 26px rgb(0 31 63 / 0.5), inset 0 0 0 1px rgb(0 31 63 / 0.3);
+  }
+
+  /* Device-appropriate hints ("Tap …" on touch, "Click …" with a mouse) */
+  .hint-hover { display: none; }
+  @media (hover: hover) and (pointer: fine) {
+    .hint-hover { display: inline; }
+    .hint-tap { display: none; }
+  }
+
+  /* Courses: stacked boarding cards (desktop) — each card sticks a little lower than the last */
+  @media (min-width: 1024px) {
+    .course-stack { --stack-top: 186px; --card-h: min(70vh, calc(100svh - 186px - 96px)); gap: 12vh; }
+    .course-stack__item { position: sticky; top: calc(var(--stack-top) + var(--i) * 14px); }
+    .course-stack__head { position: sticky; top: 88px; z-index: 5; }
+  }
+
+  /* Big outlined display type (TAKE OFF band, footer wordmark) */
+  .outline-type {
+    font-family: var(--font-display);
+    font-weight: 700;
+    line-height: 0.82;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    user-select: none;
+    color: transparent;
+    -webkit-text-stroke: 1.5px rgb(255 255 255 / 0.25);
+  }
+
+  /* Sticky only where the panel fits the viewport (tall desktop screens) */
+  @media (min-width: 1024px) and (min-height: 880px) {
+    .sticky-tall { position: sticky; top: 92px; }
+  }
+
+  /* Cockpit display: a faint screen glow */
+  .screen-glow {
+    box-shadow:
+      inset 0 0 0 1px rgb(255 255 255 / 0.06),
+      inset 0 0 60px rgb(244 178 33 / 0.05),
+      0 0 0 6px rgb(0 31 63 / 0.08),
+      0 30px 60px -36px rgb(0 31 63 / 0.7);
+  }
+}
+
+@keyframes cloud-drift { from { translate: -3% 0; } to { translate: 3% 0; } }
+
+/* States armed by the motion runtime only (without it everything shows its final state) */
+/* Why Choose: the point in the middle brightens, the others dim slightly (kept above WCAG AA contrast) */
+[data-points-armed] [data-point] { transition: opacity 0.5s ease; }
+[data-points-armed] [data-point] p { transition: color 0.5s ease; }
+[data-points-armed] [data-point]:not(.is-active) { opacity: 0.78; }
+[data-points-armed] [data-point].is-active p { color: rgb(255 255 255 / 0.9); }
+
+@layer utilities {
+  /* Legibility scrims over the hero video only (it opens on white frames) */
+  .scrim-top { background: linear-gradient(to bottom, rgb(0 31 63 / 0.55), rgb(0 31 63 / 0)); }
+  .scrim-bottom { background: linear-gradient(to top, rgb(0 31 63 / 0.6), rgb(0 31 63 / 0)); }
+  .text-balance { text-wrap: balance; }
+  .no-scrollbar { scrollbar-width: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+}
+
+/* ------------------------------------------------------------------
+   Motion support
+------------------------------------------------------------------- */
+.preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 26px;
+  background: var(--color-navy-deep);
+  pointer-events: none;
+  animation: preloader-out 0.4s cubic-bezier(0.65, 0, 0.35, 1) 0.8s forwards;
+}
+.preloader__logo { height: 44px; width: auto; animation: preloader-logo 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.preloader__caption {
+  margin-top: 4px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 20px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.75);
+  white-space: nowrap;
+}
+.preloader__runway { position: relative; width: 180px; height: 2px; overflow: hidden; background: rgb(255 255 255 / 0.14); }
+.preloader__bar {
+  position: absolute;
+  inset: 0;
+  background: var(--color-amber);
+  transform: scaleX(0);
+  transform-origin: left center;
+  animation: preloader-bar 0.7s cubic-bezier(0.65, 0, 0.35, 1) 0.08s forwards;
+}
+@keyframes preloader-logo { from { transform: translateY(8px); } } /* no opacity: logo paints at FCP (LCP) */
+@keyframes preloader-bar { to { transform: scaleX(1); } }
+@keyframes preloader-out { to { opacity: 0; visibility: hidden; } }
+html.no-preloader .preloader { display: none; }
+
+/* Page intro (pure CSS — no JS at startup): after the preloader the header bar slides down
+   and the hero Enquire pill rises. Repeat visits (no preloader) start almost immediately. */
+:root { --intro-delay: 1s; }
+html.no-preloader { --intro-delay: 0.15s; }
+@media (prefers-reduced-motion: no-preference) {
+  [data-header-bar] { animation: intro-header 1s cubic-bezier(0.16, 1, 0.3, 1) var(--intro-delay) both; }
+  [data-hero-pill] { animation: intro-pill 1s cubic-bezier(0.16, 1, 0.3, 1) calc(var(--intro-delay) + 0.12s) both; }
+  [data-hero-control] { animation: intro-fade 0.8s cubic-bezier(0.22, 1, 0.36, 1) calc(var(--intro-delay) + 0.3s) both; }
+}
+@keyframes intro-header { from { transform: translateY(-110%); } }
+@keyframes intro-pill { from { transform: translateY(56px); opacity: 0; } }
+@keyframes intro-fade { from { transform: translateY(12px); opacity: 0; } }
+
+/* Below-the-fold sections: skip layout/paint until near the viewport (lib/sectionSizes.ts) */
+.cv-auto { content-visibility: auto; contain-intrinsic-block-size: auto var(--cis-m, 1200px); }
+@media (min-width: 768px) { .cv-auto { contain-intrinsic-block-size: auto var(--cis-t, 1200px); } }
+@media (min-width: 1024px) { .cv-auto { contain-intrinsic-block-size: auto var(--cis-d, 1200px); } }
+/* during an in-page jump (lib/lenis.ts): render real heights so the destination is exact */
+html.cv-render .cv-auto { content-visibility: visible; }
+
+/* Without JS the FAQ rows can't toggle, so every answer is shown open */
+html:not(.js) [data-faq-panel] { grid-template-rows: 1fr !important; }
+html:not(.js) [data-faq-panel] * { opacity: 1 !important; translate: none !important; }
+html:not(.js) [data-route-mask] { stroke-dashoffset: 0 !important; }
+
+/* SplitText line masks: room for descenders under the 1.0 heading line-height */
+[data-split] > * { padding-bottom: 0.1em; margin-bottom: -0.1em; }
+
+@media (prefers-reduced-motion: reduce) {
+  .preloader { display: none; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
