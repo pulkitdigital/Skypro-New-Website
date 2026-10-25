@@ -27,6 +27,14 @@ export const aboutImage: MediaImage = {
   alt: "SkyPro Aviation reception lounge with a wooden aircraft wall sculpture",
 };
 
+/** The view out of the "Why Choose" aircraft window: a wing above sunlit clouds (decorative). */
+export const windowView: MediaImage = {
+  src: "/media/why-window-view.webp",
+  width: 1158,
+  height: 1358,
+  alt: "",
+};
+
 export const counsellingBackground: MediaImage = {
   src: "/media/bg-counselling-aircraft.webp",
   width: 1440,

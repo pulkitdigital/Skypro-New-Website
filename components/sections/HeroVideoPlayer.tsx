@@ -140,13 +140,16 @@ export function HeroVideoPlayer({ icons }: { icons: HeroIcons }) {
           aria-hidden
           className="pointer-events-none absolute inset-0 bg-navy-deep opacity-0"
         />
-        <div aria-hidden className="scrim-bottom pointer-events-none absolute inset-x-0 bottom-0 h-48" />
       </div>
 
-      {/* Bottom controls */}
+      {/* Bottom controls (no scrim behind them: the cue carries its own shadow for the white opening frames) */}
       <div className="absolute inset-x-0 bottom-0 z-10">
         <div className="container-x flex items-end justify-between pb-[max(24px,env(safe-area-inset-bottom))] md:pb-10">
-          <div data-hero-control className="hidden items-center gap-3 text-white sm:flex" aria-hidden>
+          <div
+            data-hero-control
+            className="hidden items-center gap-3 text-white [filter:drop-shadow(0_1px_6px_rgb(0_31_63/0.7))] sm:flex"
+            aria-hidden
+          >
             <span className="relative block h-12 w-px overflow-hidden bg-white/25">
               <span className="absolute inset-x-0 top-0 h-1/2 bg-amber motion-safe:animate-[scroll-cue_2s_cubic-bezier(0.65,0,0.35,1)_infinite]" />
             </span>

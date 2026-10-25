@@ -13,15 +13,12 @@ import {
   setupCounselling,
   setupCourses,
   setupIntro,
-  setupLife,
   setupPathway,
   setupRequirements,
-  setupRunway,
   setupSeats,
   setupTakeoffBand,
   setupWindow,
   setupWordmark,
-  watchClouds,
 } from "./features";
 
 const CONDITIONS = { desktop: BP.desktop, tablet: BP.tablet, mobile: BP.mobile };
@@ -68,7 +65,6 @@ export default function MotionRuntime() {
     heroMM.add(BP.desktop, setupHero);
     heroMM.add("(min-width: 1280px) and (prefers-reduced-motion: no-preference)", setupAltitude);
     instances.push(heroMM);
-    const stopClouds = watchClouds();
 
     // SplitText is only used on tablet/desktop — phones never download or evaluate it.
     const split = window.matchMedia("(min-width: 768px)").matches ? loadSplitText().catch(() => null) : Promise.resolve(null);
@@ -92,8 +88,6 @@ export default function MotionRuntime() {
         if (id === "requirements") cleanups.push(setupRequirements(section));
         if (id === "pathway") cleanups.push(setupPathway(section, c));
         if (id === "testimonials") cleanups.push(setupSeats(section));
-        if (id === "life") cleanups.push(setupLife(section, c));
-        if (id === "enquiry") cleanups.push(setupRunway(section, c));
         if (id === "counselling") cleanups.push(setupCounselling(section));
         if (section.dataset.takeoffBand !== undefined) cleanups.push(setupTakeoffBand(section));
         if (section.tagName === "FOOTER") cleanups.push(setupWordmark(section));
@@ -146,7 +140,6 @@ export default function MotionRuntime() {
 
     return () => {
       alive = false;
-      stopClouds();
       observer.disconnect();
       resizeObserver.disconnect();
       window.clearTimeout(refreshTimer);

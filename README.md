@@ -56,7 +56,7 @@ Other scripts:
 
 ## How the motion works (short version)
 
-- Sections are plain markup with `data-*` hooks (`data-reveal`, `data-split`, `data-counter`, `data-gauge`, …).
+- Sections are plain markup with `data-*` hooks (`data-reveal`, `data-split`, `data-counter`, `data-hours-bar`, …).
 - `components/motion/runtime/` (GSAP, ScrollTrigger, Lenis) is a separate chunk. It loads after the page has loaded, never for visitors with *reduced motion*, and animates each section only as it approaches the viewport.
 - The preloader and the header/hero intro are pure CSS.
 - To add an animation to new markup, give the element one of the existing `data-*` attributes, or add a rule in `components/motion/runtime/sections.ts`.
@@ -76,7 +76,7 @@ Every visible string is in `data/`. Edit the file, save, and the dev server upda
 | `data/batches.ts` | Upcoming batches. Set `visible: false` on every batch to hide the section |
 | `data/whyChoose.ts` | 6 numbered points + sticky image |
 | `data/faculty.ts` | Faculty cards, bios, tags, YouTube demo IDs |
-| `data/requirements.ts` | DGCA requirement cards + flying-hours gauge values |
+| `data/requirements.ts` | DGCA requirement cards + flying-hours breakdown |
 | `data/pathway.ts` | 6 pathway steps |
 | `data/testimonials.ts` | Testimonial videos (name, course, duration) |
 | `data/faq.ts` | FAQ questions/answers (also used for the FAQPage JSON-LD) |

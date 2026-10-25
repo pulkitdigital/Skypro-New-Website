@@ -21,7 +21,7 @@ function CourseCard({ course, index }: { course: Course; index: number }) {
         data-stack-sheet
         data-cursor="explore"
         className={cn(
-          "relative grid overflow-hidden rounded-[6px] shadow-[0_30px_60px_-36px_rgb(0_31_63/0.55)] lg:h-[var(--card-h)] lg:grid-cols-2",
+          "relative isolate grid overflow-hidden rounded-[6px] shadow-[0_30px_60px_-36px_rgb(0_31_63/0.55)] lg:h-[var(--card-h)] lg:grid-cols-2",
           navy ? "tone-dark bg-navy text-white" : "border border-hairline bg-ivory text-navy",
         )}
       >
@@ -80,8 +80,8 @@ function CourseCard({ course, index }: { course: Course; index: number }) {
 /**
  * "Stacked boarding cards": on desktop each course card sticks under the heading and the next
  * one slides up over it; the motion runtime scales the previous card to 0.94 and darkens it,
- * flies the plane along each card's route line as it settles, zooms the photo in and updates
- * the "01 / 06" counter. Phones/tablets: plain vertical cards that fade up.
+ * flies the plane along each card's route line as it settles and zooms the photo in.
+ * Phones/tablets: plain vertical cards that fade up.
  */
 export function Courses() {
   const cv = deferredSection("courses");
@@ -94,20 +94,10 @@ export function Courses() {
       style={cv.style}
     >
       <div className="container-x">
-        <div className="course-stack__head mb-10 flex flex-col gap-5 bg-mist md:mb-12 lg:flex-row lg:items-end lg:justify-between lg:gap-16 lg:pb-5">
-          <div className="flex items-end gap-6">
-            <h2 id="courses-title" data-split className="h2 text-navy">
-              {h.title}
-            </h2>
-            <p aria-hidden className="hidden pb-1.5 font-mono text-[14px] tracking-[0.08em] text-navy lg:block">
-              <span data-stack-index className="text-navy">
-                01
-              </span>
-              <span className="text-muted"> / {pad(courses.length)}</span>
-            </p>
-          </div>
-          <p className="max-w-xl text-muted lg:pb-1">{coursesIntro}</p>
-        </div>
+        <h2 id="courses-title" data-split className="h2 text-navy">
+          {h.title}
+        </h2>
+        <p className="mt-5 mb-10 max-w-[640px] text-muted md:mb-12">{coursesIntro}</p>
 
         <ul aria-label={h.title} className="course-stack mx-auto flex max-w-[1200px] flex-col gap-8 lg:gap-[12vh]">
           {courses.map((course, i) => (

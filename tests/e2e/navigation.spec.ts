@@ -134,22 +134,25 @@ test.describe("dialogs", () => {
     await expect(dialog).toBeHidden();
   });
 
-  test("faculty: first instructor featured; a selector card swaps the featured profile; Watch Demo opens the demo dialog", async ({ page }) => {
+  test("faculty: a card opens the full profile; previous/next and ←/→ move between instructors; Watch Demo opens the demo dialog", async ({ page }) => {
     await openHome(page);
     const section = page.locator("#faculty");
     await section.scrollIntoViewIfNeeded();
-    const featured = page.locator("#faculty-featured");
-    await expect(featured.getByRole("heading", { name: "Gp Capt. Arvind Thapliyal" })).toBeVisible();
-    await expect(featured).toContainText("with over four decades of experience in military and civil aviation");
+    await section.getByRole("button", { name: /Gp Capt\. Arvind Thapliyal/ }).click();
+    const first = page.getByRole("dialog", { name: "Gp Capt. Arvind Thapliyal" });
+    await expect(first).toBeVisible();
+    await expect(first).toContainText("with over four decades of experience in military and civil aviation");
 
-    await section.getByRole("button", { name: /Sqn Ldr\. Nivedita Choudhary/ }).click();
-    await expect(featured.getByRole("heading", { name: "Sqn Ldr. Nivedita Choudhary" })).toBeVisible();
-    await expect(featured).toContainText("she became the first woman from Rajasthan to climb Mount Everest");
-    await expect(section.getByRole("button", { name: /Gp Capt\. Arvind Thapliyal/ })).toBeVisible();
+    await first.getByRole("button", { name: "Next instructor" }).click();
+    const second = page.getByRole("dialog", { name: "Gp Capt. Narender Kumar Dahiya" });
+    await expect(second).toBeVisible();
+    await page.keyboard.press("ArrowRight");
+    await expect(page.getByRole("dialog", { name: "Group Captain Punit Mehta" })).toBeVisible();
+    await page.keyboard.press("ArrowLeft");
+    await expect(second).toBeVisible();
 
-    await section.getByRole("button", { name: /Gp Capt\. Narender Kumar Dahiya/ }).click();
-    await expect(featured.getByRole("heading", { name: "Gp Capt. Narender Kumar Dahiya" })).toBeVisible();
-    await featured.getByRole("button", { name: /Watch Demo Lectures/ }).click();
+    await second.getByRole("button", { name: /Watch Demo Lectures/ }).click();
+    await expect(second).toBeHidden();
     const demo = page.getByRole("dialog", { name: "Watch Demo Lectures" });
     await expect(demo).toBeVisible();
     await expect(demo.getByRole("tab", { name: "Gp Capt. Narender Kumar Dahiya" })).toHaveAttribute("aria-selected", "true");
@@ -157,16 +160,18 @@ test.describe("dialogs", () => {
     await expect(demo).toBeHidden();
   });
 
-  test("academy life photos open a lightbox with arrows", async ({ page }) => {
+  test("academy life: a slide opens the lightbox on its photo, with arrows", async ({ page }) => {
     await openHome(page);
     const life = page.locator("#life");
     await life.scrollIntoViewIfNeeded();
-    await life.locator("[data-life-photo]").first().click();
+    // the slider autoplays, so open whichever slide is first in view
+    await life.locator("[data-life-photo][data-first-in-view]").click();
     const box = page.getByRole("dialog", { name: "Life at SkyPro Aviation Academy" });
     await expect(box).toBeVisible();
-    await expect(box).toContainText("1 / 17");
+    await expect(box).toContainText(/\d+ \/ 17/);
+    const n = Number((await box.getByText(/\d+ \/ 17/).textContent())?.split("/")[0]);
     await box.getByRole("button", { name: "Next photo" }).click();
-    await expect(box).toContainText("2 / 17");
+    await expect(box).toContainText(`${(n % 17) + 1} / 17`);
     await page.keyboard.press("Escape");
     await expect(box).toBeHidden();
   });

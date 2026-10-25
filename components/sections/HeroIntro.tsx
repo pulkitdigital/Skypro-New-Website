@@ -8,7 +8,6 @@ import { EnquireButton } from "@/components/ui/EnquireButton";
 import { WatchDemoButton } from "@/components/ui/DemoLectures";
 import { Img } from "@/components/ui/Img";
 import { ChartLines } from "@/components/backgrounds/ChartLines";
-import { CloudLayer } from "@/components/fx/CloudLayer";
 import { PlaneFlyby } from "@/components/fx/PlaneFlyby";
 import { cn } from "@/lib/utils";
 
@@ -41,13 +40,6 @@ export function HeroIntro() {
       className="tone-dark relative z-[2] overflow-x-clip bg-navy-deep pt-24 pb-16 text-white md:pt-32 lg:pb-24"
     >
       <ChartLines />
-      {/* Cloud bank on the hero/intro boundary: rises and thins out as the intro slides up */}
-      <CloudLayer
-        shape="rise"
-        name="hero-rise"
-        className="inset-x-0 -top-[13vh] z-[1] h-[16vh] md:-top-[24vh] md:h-[30vh]"
-        dim={0.7}
-      />
       {/* Flyby behind the H1 (desktop/tablet) */}
       <div className="pointer-events-none absolute inset-x-0 top-10 z-[1] h-[320px] md:top-16 md:h-[380px]">
         <PlaneFlyby id="intro-flyby" path="across" />

@@ -1,12 +1,13 @@
-import { AirplaneTilt } from "@phosphor-icons/react/dist/ssr/AirplaneTilt";
+import { ArrowLeft } from "@phosphor-icons/react/dist/ssr/ArrowLeft";
 import { ArrowRight } from "@phosphor-icons/react/dist/ssr/ArrowRight";
 import { Clock } from "@phosphor-icons/react/dist/ssr/Clock";
 import { Medal } from "@phosphor-icons/react/dist/ssr/Medal";
 import { Play } from "@phosphor-icons/react/dist/ssr/Play";
+import { X } from "@phosphor-icons/react/dist/ssr/X";
 import { headings } from "@/data/sections";
 import { deferredSection } from "@/lib/sectionSizes";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import { FacultyShowcase } from "./FacultyShowcase";
+import { FacultyCards } from "./FacultyCards";
 
 /** Server wrapper: the icons render here, outside the client bundle. */
 export function Faculty() {
@@ -21,13 +22,16 @@ export function Faculty() {
     >
       <div className="container-x">
         <SectionHeading id="faculty-title" title={h.title} className="mb-10 max-w-3xl md:mb-14" />
-        <FacultyShowcase
+        <FacultyCards
+          label={h.title}
           icons={{
-            aircraft: <AirplaneTilt weight="light" aria-hidden className="size-[18px]" />,
+            arrow: <ArrowRight weight="light" aria-hidden className="size-4" />,
+            prev: <ArrowLeft weight="light" aria-hidden className="size-5" />,
+            next: <ArrowRight weight="light" aria-hidden className="size-5" />,
+            close: <X weight="light" aria-hidden className="size-5" />,
+            play: <Play weight="light" aria-hidden />,
             medal: <Medal weight="light" aria-hidden className="size-[18px]" />,
             clock: <Clock weight="light" aria-hidden className="size-[18px]" />,
-            play: <Play weight="light" aria-hidden />,
-            arrow: <ArrowRight weight="light" aria-hidden className="size-4" />,
           }}
         />
       </div>

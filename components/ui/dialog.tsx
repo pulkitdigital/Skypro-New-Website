@@ -13,8 +13,14 @@ export function DialogContent({
   children,
   tone = "light",
   closeIcon,
+  closeClassName,
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Content> & { tone?: "light" | "dark"; closeIcon: React.ReactNode }) {
+}: React.ComponentProps<typeof DialogPrimitive.Content> & {
+  tone?: "light" | "dark";
+  closeIcon: React.ReactNode;
+  /** Extra classes for the close button (e.g. when it sits on a photo). */
+  closeClassName?: string;
+}) {
   return (
     <DialogPrimitive.Portal>
       <DialogPrimitive.Overlay className="fixed inset-0 z-[90] bg-navy-deep/80 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0" />
@@ -35,6 +41,7 @@ export function DialogContent({
           className={cn(
             "absolute top-4 right-4 flex size-10 items-center justify-center rounded-[4px] transition-colors",
             tone === "dark" ? "bg-white/10 text-white hover:bg-white hover:text-navy" : "bg-mist text-navy hover:bg-navy hover:text-white",
+            closeClassName,
           )}
         >
           {closeIcon}

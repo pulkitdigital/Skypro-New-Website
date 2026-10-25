@@ -34,7 +34,7 @@ for (const width of widths) {
   // hide the fixed header, WhatsApp button and the (focus-only) skip link
   await page.addStyleTag({
     content:
-      '.cv-auto{content-visibility:visible!important} [class~=sticky],[class~="lg:sticky"],.course-stack__item,.course-stack__head,.sticky-tall{position:relative!important;top:auto!important} [data-header],[data-whatsapp],a[href="#main"]{display:none!important}',
+      '.cv-auto{content-visibility:visible!important} [class~=sticky],[class~="lg:sticky"],.course-stack__item{position:relative!important;top:auto!important} [data-header],[data-whatsapp],a[href="#main"]{display:none!important}',
   });
   const height = await page.evaluate(() => document.documentElement.scrollHeight);
   for (let y = 0; y < height; y += 600) {

@@ -218,36 +218,12 @@
   /* Card photo (inside a .card): slow, subtle zoom on hover */
   .zoom-img { transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1); }
   .card:hover .zoom-img { transform: scale(1.04); }
-
-  /* Card title: an amber underline draws in on hover */
-  .hover-underline {
-    background-image: linear-gradient(var(--color-amber), var(--color-amber));
-    background-repeat: no-repeat;
-    background-position: 0 100%;
-    background-size: 0% 2px;
-    padding-bottom: 4px;
-    transition: background-size 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  .card:hover .hover-underline,
-  .card:focus-within .hover-underline { background-size: 100% 2px; }
 }
 
 /* ------------------------------------------------------------------
    Aviation FX (components/fx) — illustrations only; motion is transform/opacity
 ------------------------------------------------------------------- */
 @layer components {
-  /* CloudLayer: soft puffs made of radial gradients. The drift is the page's only loop and
-     runs only while the layer is on screen (.is-live, set by the motion runtime). */
-  .cloud-layer { position: absolute; pointer-events: none; --cloud: 255 255 255; }
-  .cloud-puff {
-    position: absolute;
-    border-radius: 9999px;
-    background: radial-gradient(closest-side, rgb(var(--cloud) / 0.96), rgb(var(--cloud) / 0.7) 42%, rgb(var(--cloud) / 0) 100%);
-    animation: cloud-drift var(--drift, 36s) ease-in-out var(--delay, 0s) infinite alternate;
-    animation-play-state: paused;
-  }
-  .cloud-layer.is-live .cloud-puff { animation-play-state: running; }
-
   /* Altitude indicator: tick ladder */
   .altitude-ticks {
     background-image:
@@ -323,11 +299,12 @@
     .hint-tap { display: none; }
   }
 
-  /* Courses: stacked boarding cards (desktop) — each card sticks a little lower than the last */
+  /* Courses: stacked boarding cards (desktop) — each card sticks a little lower than the last,
+     just under the navbar. Each card is its own stacking context, layered in order, so a card's
+     inner layers (route line, darkening overlay) can never paint over the card above it. */
   @media (min-width: 1024px) {
-    .course-stack { --stack-top: 186px; --card-h: min(70vh, calc(100svh - 186px - 96px)); gap: 12vh; }
-    .course-stack__item { position: sticky; top: calc(var(--stack-top) + var(--i) * 14px); }
-    .course-stack__head { position: sticky; top: 88px; z-index: 5; }
+    .course-stack { --stack-top: calc(var(--header-h) + 20px); --card-h: min(70vh, calc(100svh - var(--stack-top) - 96px)); gap: 12vh; }
+    .course-stack__item { position: sticky; top: calc(var(--stack-top) + var(--i) * 14px); z-index: calc(var(--i) + 1); }
   }
 
   /* Big outlined display type (TAKE OFF band, footer wordmark) */
@@ -342,23 +319,7 @@
     color: transparent;
     -webkit-text-stroke: 1.5px rgb(255 255 255 / 0.25);
   }
-
-  /* Sticky only where the panel fits the viewport (tall desktop screens) */
-  @media (min-width: 1024px) and (min-height: 880px) {
-    .sticky-tall { position: sticky; top: 92px; }
-  }
-
-  /* Cockpit display: a faint screen glow */
-  .screen-glow {
-    box-shadow:
-      inset 0 0 0 1px rgb(255 255 255 / 0.06),
-      inset 0 0 60px rgb(244 178 33 / 0.05),
-      0 0 0 6px rgb(0 31 63 / 0.08),
-      0 30px 60px -36px rgb(0 31 63 / 0.7);
-  }
 }
-
-@keyframes cloud-drift { from { translate: -3% 0; } to { translate: 3% 0; } }
 
 /* States armed by the motion runtime only (without it everything shows its final state) */
 /* Why Choose: the point in the middle brightens, the others dim slightly (kept above WCAG AA contrast) */
@@ -368,9 +329,8 @@
 [data-points-armed] [data-point].is-active p { color: rgb(255 255 255 / 0.9); }
 
 @layer utilities {
-  /* Legibility scrims over the hero video only (it opens on white frames) */
+  /* Legibility scrim behind the header over the hero video (it opens on white frames) */
   .scrim-top { background: linear-gradient(to bottom, rgb(0 31 63 / 0.55), rgb(0 31 63 / 0)); }
-  .scrim-bottom { background: linear-gradient(to top, rgb(0 31 63 / 0.6), rgb(0 31 63 / 0)); }
   .text-balance { text-wrap: balance; }
   .no-scrollbar { scrollbar-width: none; }
   .no-scrollbar::-webkit-scrollbar { display: none; }

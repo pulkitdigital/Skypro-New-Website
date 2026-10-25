@@ -1,7 +1,7 @@
 import type { DemoLecture, FacultyMember } from "./types";
 
 const portrait = (slug: string, alt: string) => ({
-  src: `/media/faculty-${slug}.webp`,
+  src: `/media/faculty-${slug}-cutout.webp`,
   width: 625,
   height: 625,
   alt,

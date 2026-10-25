@@ -9,15 +9,15 @@ import type { CSSProperties } from "react";
  * see scripts/qa/section-heights.mjs.
  */
 const SIZES = {
-  courses: [5091, 6568, 4220],
+  courses: [5091, 6568, 4720],
   batches: [818, 704, 449],
   "why-choose": [2147, 2091, 1625],
-  faculty: [1779, 1312, 1188],
-  requirements: [2795, 2248, 1370],
-  pathway: [1637, 1411, 1261],
+  faculty: [764, 828, 797],
+  requirements: [2449, 1703, 1148],
+  pathway: [1433, 1165, 817],
   testimonials: [858, 944, 878],
-  life: [1492, 2877, 1559],
-  enquiry: [2302, 1799, 1275],
+  life: [553, 640, 730],
+  enquiry: [2274, 1716, 1275],
   faq: [1265, 1198, 927],
   blogs: [1705, 1516, 1019],
   counselling: [940, 761, 782],

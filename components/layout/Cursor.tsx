@@ -15,6 +15,8 @@ import { gsap } from "@/lib/gsap";
  *    iframes (the native text cursor shows there).
  * 2. Context labels: [data-cursor="play" | "drag" | "view" | "explore"] turn the ring into a
  *    72px amber disc with the label ("drag" only where the element really scrolls sideways).
+ *    Inside [data-cursor-compact] (cards with text) it is a 44px badge pinned to the top-right
+ *    corner of the element instead, so it never covers the text, and there is no "drag" label.
  * 3. Plane: inside [data-cursor-zone="plane"] the reticle becomes a small amber plane that
  *    turns to face its direction of travel and leaves a short fading contrail.
  *
@@ -56,6 +58,9 @@ const css = `
   font-family: var(--font-mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--color-navy);
 }
 .hud-ring[data-mode="label"] .hud-ring__label { opacity: 1; }
+/* compact: a small badge (the ring is moved to the element's top-right corner) */
+.hud-ring[data-compact] .hud-ring__disc, .hud-ring[data-compact] .hud-ring__label { left: -22px; top: -22px; width: 44px; height: 44px; }
+.hud-ring[data-compact] .hud-ring__label { font-size: 9px; letter-spacing: .08em; }
 .hud-dot { width: 4px; height: 4px; margin: -2px 0 0 -2px; border-radius: 9999px; background: var(--color-amber); box-shadow: 0 0 0 1.5px rgb(0 31 63 / .75); transition: opacity .2s ease; }
 .hud-dot[data-mode="hidden"], .hud-dot[data-mode="plane"], .hud-dot[data-mode="label"] { opacity: 0; }
 .hud-plane { width: 22px; height: 22px; margin: -11px 0 0 -11px; color: var(--color-amber); opacity: 0; transition: opacity .2s ease; }
@@ -97,6 +102,8 @@ export function Cursor() {
     let mode: Mode = "hidden";
     let angle = -45;
     let last = { x: 0, y: 0 };
+    /** Compact label: the element whose top-right corner the badge is pinned to. */
+    let anchor: HTMLElement | null = null;
 
     const setMode = (next: Mode) => {
       if (next === mode) return;
@@ -112,6 +119,7 @@ export function Cursor() {
 
     /** What the pointer is over → mode (+ label text). */
     const resolve = (target: EventTarget | null) => {
+      anchor = null;
       const el = target instanceof Element ? target : null;
       if (!el || !pos.seen) return setMode("hidden");
       if (el.closest('[data-cursor-zone="plane"]')) return setMode("plane");
@@ -119,8 +127,12 @@ export function Cursor() {
       if (!hit) return setMode("idle");
       if (FIELDS.test(hit.tagName) || hit.isContentEditable) return setMode("hidden");
       const kind = hit.dataset.cursor as keyof typeof LABELS | undefined;
-      if (kind && LABELS[kind] && (kind !== "drag" || hit.scrollWidth > hit.clientWidth + 4)) {
+      const compact = Boolean(hit.closest("[data-cursor-compact]"));
+      ringEl.toggleAttribute("data-compact", compact);
+      const labelled = kind && LABELS[kind] && !(compact && kind === "drag");
+      if (labelled && (kind !== "drag" || hit.scrollWidth > hit.clientWidth + 4)) {
         labelEl.textContent = LABELS[kind];
+        if (compact) anchor = hit;
         return setMode("label");
       }
       // a [data-cursor="drag"] row that doesn't scroll at this size: treat what's under it normally
@@ -137,11 +149,22 @@ export function Cursor() {
         gsap.set(ringEl, { x: pos.x, y: pos.y });
       }
       gsap.set(dotEl, { x: pos.x, y: pos.y });
-      ringX(pos.x);
-      ringY(pos.y);
       resolve(e.target);
+      follow();
     };
-    const onOver = (e: PointerEvent) => e.pointerType === "mouse" && resolve(e.target);
+    /** The ring follows the pointer, or sits on its anchor's top-right corner (12px inset). */
+    const follow = () => {
+      const r = anchor?.getBoundingClientRect();
+      ringX(r ? r.right - 34 : pos.x);
+      ringY(r ? r.top + 34 : pos.y);
+    };
+    const onOver = (e: PointerEvent) => {
+      if (e.pointerType !== "mouse") return;
+      resolve(e.target);
+      follow();
+    };
+    // the anchor moves with page / carousel scrolling (scroll events don't bubble: capture them)
+    const onScroll = () => anchor && follow();
     const onDown = () => svgEl.style.setProperty("--press", "0.85");
     const onUp = () => svgEl.style.removeProperty("--press");
     const hide = () => {
@@ -173,6 +196,7 @@ export function Cursor() {
     setMode("hidden");
     window.addEventListener("pointermove", onMove, { passive: true });
     document.addEventListener("pointerover", onOver, { passive: true });
+    document.addEventListener("scroll", onScroll, { capture: true, passive: true });
     window.addEventListener("pointerdown", onDown, { passive: true });
     window.addEventListener("pointerup", onUp, { passive: true });
     document.documentElement.addEventListener("mouseleave", onLeave);
@@ -181,6 +205,7 @@ export function Cursor() {
     return () => {
       window.removeEventListener("pointermove", onMove);
       document.removeEventListener("pointerover", onOver);
+      document.removeEventListener("scroll", onScroll, { capture: true });
       window.removeEventListener("pointerdown", onDown);
       window.removeEventListener("pointerup", onUp);
       document.documentElement.removeEventListener("mouseleave", onLeave);

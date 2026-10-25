@@ -5,14 +5,9 @@ import { counsellingBackground } from "@/data/media";
 import { site } from "@/data/site";
 import { Img } from "@/components/ui/Img";
 import { EnquireButton } from "@/components/ui/EnquireButton";
-import { CloudLayer } from "@/components/fx/CloudLayer";
 import { deferredSection } from "@/lib/sectionSizes";
 
-/**
- * "Break through the clouds": as the band scrolls in, two cloud banks part to the left and
- * right and the photo zooms slightly (scrubbed, motion runtime). The clouds sit under the navy
- * overlay, so the copy is readable at every point of the effect.
- */
+/** Counselling band: as it scrolls in, the photo zooms slightly (scrubbed, motion runtime) under the navy overlay. */
 export function CounsellingCta() {
   const cv = deferredSection("counselling");
   return (
@@ -26,8 +21,6 @@ export function CounsellingCta() {
         <div data-cta-photo className="absolute inset-0">
           <Img image={counsellingBackground} fill sizes="100vw" className="object-cover" />
         </div>
-        <CloudLayer shape="left" name="cta-left" className="inset-y-0 -left-[8%] w-[70%]" />
-        <CloudLayer shape="right" name="cta-right" className="inset-y-0 -right-[8%] w-[70%]" />
         <div className="absolute inset-0 bg-gradient-to-r from-navy-deep/[0.9] via-navy-deep/[0.78] to-navy-deep/[0.55]" />
       </div>
 

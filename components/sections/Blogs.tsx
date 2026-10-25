@@ -1,4 +1,3 @@
-import { Airplane } from "@phosphor-icons/react/dist/ssr/Airplane";
 import { ArrowRight } from "@phosphor-icons/react/dist/ssr/ArrowRight";
 import { deferredSection } from "@/lib/sectionSizes";
 import { blogs } from "@/data/blogs";
@@ -7,16 +6,7 @@ import type { Blog } from "@/data/types";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { NoNavLink } from "@/components/ui/NoNavLink";
 import { Img } from "@/components/ui/Img";
-import { BlogRoute } from "@/components/fx/BlogRoute";
 import { cn } from "@/lib/utils";
-
-/** Route drawn over each article image (from the article subject). */
-const ROUTES: Record<string, { from: string; to: string[] }> = {
-  "cpl-training-argentina-guide": { from: "India", to: ["Argentina"] },
-  "cpl-argentina-vs-south-africa": { from: "India", to: ["Argentina", "South Africa"] },
-  "become-pilot-after-12th": { from: "12th", to: ["Cockpit"] },
-};
-const plane = <Airplane weight="light" className="size-5" />;
 
 function BlogCard({ blog, featured }: { blog: Blog; featured?: boolean }) {
   return (
@@ -28,17 +18,17 @@ function BlogCard({ blog, featured }: { blog: Blog; featured?: boolean }) {
           sizes={featured ? "(min-width: 1024px) 620px, 100vw" : "(min-width: 1024px) 300px, (min-width: 768px) 46vw, 100vw"}
           className="zoom-img object-cover"
         />
-        {ROUTES[blog.id] ? <BlogRoute from={ROUTES[blog.id]!.from} to={ROUTES[blog.id]!.to} plane={plane} /> : null}
       </div>
       <div className="flex flex-1 flex-col gap-3">
         <h3
           className={cn(
-            "font-display font-bold text-navy",
+            // hover: no underline, only a slight shift to a lighter navy
+            "font-display font-bold text-navy transition-colors duration-300 group-focus-within:text-[color:color-mix(in_srgb,var(--color-navy)_80%,white)] group-hover:text-[color:color-mix(in_srgb,var(--color-navy)_80%,white)]",
             // size before leading: tailwind-merge drops a leading-* that precedes a text-* size
             featured ? "text-[28px] leading-[1.08] md:text-[34px]" : "text-[22px] leading-[1.12]",
           )}
         >
-          <span className="hover-underline">{blog.title}</span>
+          {blog.title}
         </h3>
         <p className={cn("text-muted", featured ? "max-w-2xl" : "text-[15px]")}>{blog.excerpt}</p>
         <NoNavLink aria-label={`${labels.readMore} about ${blog.title}`} className="link-arrow self-start pt-2 text-navy">

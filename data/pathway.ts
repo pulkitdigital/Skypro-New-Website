@@ -1,4 +1,4 @@
-import type { MediaImage, PathwayStep } from "./types";
+import type { PathwayStep } from "./types";
 
 export const pathwaySteps: PathwayStep[] = [
   {
@@ -32,10 +32,3 @@ export const pathwaySteps: PathwayStep[] = [
     text: "Complete an aircraft type rating to qualify for airline operations, followed by airline selection processes and assessments.",
   },
 ];
-
-export const pathwayBackground: MediaImage = {
-  src: "/media/pathway-bg.webp",
-  width: 1600,
-  height: 772,
-  alt: "",
-};

@@ -1,8 +1,7 @@
 import { Airplane } from "@phosphor-icons/react/dist/ssr/Airplane";
 import { headings } from "@/data/sections";
-import { pathwayBackground, pathwaySteps } from "@/data/pathway";
+import { pathwaySteps } from "@/data/pathway";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import { Img } from "@/components/ui/Img";
 import { ChartLines } from "@/components/backgrounds/ChartLines";
 import { deferredSection } from "@/lib/sectionSizes";
 
@@ -46,12 +45,7 @@ export function Pathway() {
       className={`tone-dark relative overflow-hidden bg-navy-deep text-white ${cv.className}`}
       style={cv.style}
     >
-      {/* Full-bleed photo band */}
-      <div data-clip-reveal className="relative h-[clamp(220px,32vw,460px)] w-full overflow-hidden">
-        <Img image={pathwayBackground} fill sizes="100vw" className="object-cover" />
-      </div>
-
-      <div className="relative pt-16 pb-20 md:pt-24 md:pb-28">
+      <div className="relative py-20 md:py-28">
         <ChartLines />
         <div className="container-x relative">
           <SectionHeading title={h.title} tone="dark" className="mb-12 max-w-3xl lg:mb-16" />

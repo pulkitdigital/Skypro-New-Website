@@ -1,14 +1,11 @@
 import { gsap, ScrollTrigger } from "@/lib/gsap";
-import { TAKEOFF } from "@/lib/takeoff";
 import type { Conditions, SplitTextClass } from "./sections";
 
 type Cleanup = () => void;
 const noop: Cleanup = () => {};
 const once = (trigger: Element, start = "top 85%") => ({ trigger, start, once: true });
 const $$ = <T extends Element = HTMLElement>(root: ParentNode, selector: string) => Array.from(root.querySelectorAll<T>(selector));
-const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
-const pad = (n: number) => String(n).padStart(2, "0");
 
 /* ---------------------------------------------------------------------------------------- */
 /* PlaneFlyby — a plane flies a curve sized to its box, with a contrail that fades           */
@@ -46,16 +43,6 @@ export function flybyTimeline(root: HTMLElement, duration = 2.2) {
 }
 
 /* ---------------------------------------------------------------------------------------- */
-/* Clouds — drift only while on screen                                                       */
-/* ---------------------------------------------------------------------------------------- */
-
-export function watchClouds(): Cleanup {
-  const io = new IntersectionObserver((entries) => entries.forEach((e) => e.target.classList.toggle("is-live", e.isIntersecting)));
-  $$(document, "[data-cloud]").forEach((el) => io.observe(el));
-  return () => io.disconnect();
-}
-
-/* ---------------------------------------------------------------------------------------- */
 /* Altitude indicator (≥1280px) — 0 → 35,000 FT with the scroll after the hero               */
 /* ---------------------------------------------------------------------------------------- */
 
@@ -87,22 +74,11 @@ export function setupAltitude(): Cleanup {
 }
 
 /* ---------------------------------------------------------------------------------------- */
-/* Hero intro — clouds thin out (phones/tablets) · flyby behind the H1 (tablet/desktop)       */
+/* Hero intro — flyby behind the H1 (tablet/desktop)                                         */
 /* ---------------------------------------------------------------------------------------- */
 
 export function setupIntro(section: HTMLElement, c: Conditions, Split: SplitTextClass | null): Cleanup {
   const cleanups: Cleanup[] = [];
-  const clouds = section.querySelector<HTMLElement>('[data-cloud="hero-rise"]');
-  if (clouds && !c.desktop) {
-    // desktop: part of the pinned hero transition (sections.ts)
-    const tween = gsap.fromTo(
-      clouds,
-      { yPercent: 0, opacity: 1 },
-      { yPercent: -45, opacity: 0, ease: "none", scrollTrigger: { trigger: section, start: "top bottom", end: "top 35%", scrub: true } },
-    );
-    cleanups.push(() => (tween.scrollTrigger?.kill(), tween.kill(), gsap.set(clouds, { clearProps: "all" })));
-  }
-
   const heading = section.querySelector<HTMLElement>('[data-split="flyby"]');
   const flyby = section.querySelector<HTMLElement>("[data-flyby]");
   if (heading && (c.desktop || c.tablet)) {
@@ -134,17 +110,15 @@ export function setupIntro(section: HTMLElement, c: Conditions, Split: SplitText
 
 /**
  * Every photo zooms in slowly as its card enters. Desktop (cards are sticky): as card i slides
- * up into place, card i-1 scales to 0.94 (from its top edge) and darkens, card i's plane
- * crosses its route line, and the "01 / 06" counter updates. Scroll positions are computed from
- * the (non-sticky) list and each card's natural offset, so they stay right while cards stick.
+ * up into place, card i-1 scales to 0.94 (from its top edge) and darkens, and card i's plane
+ * crosses its route line. Scroll positions are computed from the (non-sticky) list and each
+ * card's natural offset, so they stay right while cards stick.
  */
 export function setupCourses(section: HTMLElement, c: Conditions): Cleanup {
   const list = section.querySelector<HTMLElement>(".course-stack");
   const cards = $$(section, "[data-stack-card]");
-  const counter = section.querySelector<HTMLElement>("[data-stack-index]");
   if (!list || !cards.length) return noop;
   const tweens: (gsap.core.Tween | gsap.core.Timeline)[] = [];
-  const triggers: ScrollTrigger[] = [];
 
   cards.forEach((card) => {
     const photo = card.querySelector("[data-stack-photo]");
@@ -173,15 +147,6 @@ export function setupCourses(section: HTMLElement, c: Conditions): Cleanup {
           ),
         );
       }
-      if (counter) {
-        triggers.push(
-          ScrollTrigger.create({
-            start: () => arrive(i).end() - 2,
-            onEnter: () => void (counter.textContent = pad(i + 1)),
-            onLeaveBack: () => void (counter.textContent = pad(Math.max(1, i))),
-          }),
-        );
-      }
       const prev = cards[i - 1];
       if (prev) {
         const sheet = prev.querySelector("[data-stack-sheet]");
@@ -196,9 +161,7 @@ export function setupCourses(section: HTMLElement, c: Conditions): Cleanup {
 
   return () => {
     tweens.forEach((t) => (t.scrollTrigger?.kill(), t.kill()));
-    triggers.forEach((t) => t.kill());
     gsap.set($$(section, "[data-stack-photo], [data-stack-plane], [data-stack-sheet], [data-stack-dim]"), { clearProps: "transform,opacity" });
-    if (counter) counter.textContent = "01";
   };
 }
 
@@ -221,14 +184,14 @@ export function setupBatch(section: HTMLElement, c: Conditions): Cleanup {
 }
 
 /* ---------------------------------------------------------------------------------------- */
-/* Why Choose — window parallax + the point in the middle of the screen is brightest         */
+/* Why Choose — window sky drift + the point in the middle of the screen is brightest        */
 /* ---------------------------------------------------------------------------------------- */
 
 export function setupWindow(section: HTMLElement, c: Conditions): Cleanup {
   const tweens: gsap.core.Tween[] = [];
   const k = c.mobile ? 0.5 : 1;
   const scrub = { trigger: section, start: "top bottom", end: "bottom top", scrub: true };
-  const amount: Record<string, [number, number]> = { "0": [0, 4], "1": [8, 2], "2": [16, 3], "3": [28, 5] };
+  const amount: Record<string, [number, number]> = { "0": [0, 4] };
   $$(section, "[data-window-depth]").forEach((layer) => {
     const [x, y] = amount[layer.dataset.windowDepth ?? "0"] ?? [0, 0];
     tweens.push(
@@ -253,88 +216,20 @@ export function setupWindow(section: HTMLElement, c: Conditions): Cleanup {
 }
 
 /* ---------------------------------------------------------------------------------------- */
-/* Requirements — checks draw in · subject tiles flip in · cockpit gauge, bars, flight checks */
+/* Requirements — the flying-hours bars fill as card 06 comes into view                      */
 /* ---------------------------------------------------------------------------------------- */
 
+/** The cards themselves rise with the shared `[data-stagger]` reveal (sections.ts). */
 export function setupRequirements(section: HTMLElement): Cleanup {
-  const tweens: (gsap.core.Tween | gsap.core.Timeline)[] = [];
-  $$(section, "[data-check]").forEach((item) => {
-    const tick = item.querySelector("[data-tick]");
-    if (!tick) return;
-    tweens.push(
-      gsap.fromTo(
-        tick,
-        { clipPath: "inset(0% 100% 0% 0%)" },
-        { clipPath: "inset(0% 0% 0% 0%)", duration: 0.6, ease: "power2.out", delay: 0.1, scrollTrigger: once(item, "top 80%") },
-      ),
-    );
-  });
-
-  const tiles = $$(section, "[data-tile]");
-  if (tiles.length) {
-    tweens.push(
-      gsap.from(tiles, {
-        rotationX: -90,
-        opacity: 0,
-        transformPerspective: 600,
-        transformOrigin: "50% 0%",
-        duration: 0.6,
-        ease: "back.out(1.4)",
-        stagger: 0.12,
-        clearProps: "transform,opacity",
-        scrollTrigger: once(tiles[0]!.parentElement!, "top 85%"),
-      }),
-    );
-  }
-
-  const panel = section.querySelector<HTMLElement>("[data-cockpit]");
-  const needle = panel?.querySelector<SVGGElement>("[data-gauge-needle]");
-  const arc = panel?.querySelector<SVGPathElement>("[data-gauge-arc]");
-  const value = panel?.querySelector<HTMLElement>("[data-gauge-value]");
-  const bars = panel ? $$(panel, "[data-hours-bar]") : [];
-  const checks = panel ? $$(panel, "[data-flight-check]") : [];
-  const origin = panel?.querySelector<SVGSVGElement>("[data-gauge]")?.dataset.gaugeOrigin ?? "150 156";
-  const total = Number(value?.textContent ?? 0);
-  let restoreNeedle = noop;
-  if (panel) {
-    const counter = { v: 0 };
-    const tl = gsap.timeline({ scrollTrigger: once(panel, "top 75%") });
-    if (needle) {
-      const attr = needle.getAttribute("transform") ?? "";
-      needle.removeAttribute("transform");
-      restoreNeedle = () => needle.setAttribute("transform", attr);
-      tl.fromTo(needle, { rotation: -90, svgOrigin: origin }, { rotation: 90, svgOrigin: origin, duration: 1.4, ease: "power3.inOut" }, 0);
-    }
-    if (arc) tl.fromTo(arc, { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 1.4, ease: "power3.inOut" }, 0);
-    if (value) {
-      tl.fromTo(
-        counter,
-        { v: 0 },
-        { v: total, duration: 1.4, ease: "power3.inOut", onUpdate: () => void (value.textContent = String(Math.round(counter.v))) },
-        0,
-      );
-    }
-    if (bars.length) tl.fromTo(bars, { scaleX: 0, transformOrigin: "0% 50%" }, { scaleX: 1, duration: 0.7, ease: "power3.out", stagger: 0.25 }, 0.9);
-    if (checks.length) {
-      tl.fromTo(
-        checks,
-        { clipPath: "inset(0% 100% 0% 0%)" },
-        { clipPath: "inset(0% 0% 0% 0%)", duration: 0.35, ease: "power2.out", stagger: 0.2 },
-        1.9,
-      );
-    }
-    tweens.push(tl);
-  }
-
-  return () => {
-    tweens.forEach((t) => (t.scrollTrigger?.kill(), t.kill()));
-    gsap.set($$(section, "[data-tick], [data-flight-check]"), { clearProps: "clipPath" });
-    if (needle) gsap.set(needle, { clearProps: "all" });
-    restoreNeedle();
-    if (arc) gsap.set(arc, { clearProps: "strokeDashoffset" });
-    if (value) value.textContent = String(total);
-    gsap.set(bars, { clearProps: "transform" });
-  };
+  const hours = section.querySelector<HTMLElement>("[data-hours]");
+  const bars = hours ? $$(hours, "[data-hours-bar]") : [];
+  if (!hours || !bars.length) return noop;
+  const tween = gsap.fromTo(
+    bars,
+    { scaleX: 0 },
+    { scaleX: 1, transformOrigin: "0% 50%", duration: 1.1, ease: "power3.out", stagger: 0.12, scrollTrigger: once(hours, "top 85%") },
+  );
+  return () => (tween.scrollTrigger?.kill(), tween.kill(), gsap.set(bars, { clearProps: "transform" }));
 }
 
 /* ---------------------------------------------------------------------------------------- */
@@ -444,149 +339,37 @@ export function setupPathway(section: HTMLElement, c: Conditions): Cleanup {
 }
 
 /* ---------------------------------------------------------------------------------------- */
-/* Testimonials — windows slide in from the right · clouds drift behind the row              */
+/* Testimonials — windows slide in from the right                                            */
 /* ---------------------------------------------------------------------------------------- */
 
 export function setupSeats(section: HTMLElement): Cleanup {
   const seats = $$(section, "[data-seat]").slice(0, 8);
-  const clouds = section.querySelector<HTMLElement>('[data-cloud="seats"]');
-  const tweens: gsap.core.Tween[] = [];
-  if (seats.length) {
-    tweens.push(
-      gsap.from(seats, {
-        x: 160,
-        opacity: 0,
-        duration: 1,
-        ease: "power3.out",
-        stagger: 0.07,
-        clearProps: "transform,opacity",
-        scrollTrigger: once(seats[0]!.parentElement!, "top 85%"),
-      }),
-    );
-  }
-  if (clouds) {
-    tweens.push(
-      gsap.fromTo(clouds, { xPercent: 6 }, { xPercent: -6, ease: "none", scrollTrigger: { trigger: section, start: "top bottom", end: "bottom top", scrub: true } }),
-    );
-  }
-  return () => tweens.forEach((t) => (t.scrollTrigger?.kill(), t.kill()));
+  if (!seats.length) return noop;
+  const tween = gsap.from(seats, {
+    x: 160,
+    opacity: 0,
+    duration: 1,
+    ease: "power3.out",
+    stagger: 0.07,
+    clearProps: "transform,opacity",
+    scrollTrigger: once(seats[0]!.parentElement!, "top 85%"),
+  });
+  return () => (tween.scrollTrigger?.kill(), tween.kill());
 }
 
 /* ---------------------------------------------------------------------------------------- */
-/* Academy Life — every photo wipes in                                                       */
-/* ---------------------------------------------------------------------------------------- */
-
-export function setupLife(section: HTMLElement, c: Conditions): Cleanup {
-  const tweens = $$(section, "[data-life-photo]").map((photo) =>
-    c.mobile
-      ? gsap.from(photo, { opacity: 0, duration: 0.6, ease: "power3.out", scrollTrigger: once(photo, "top 95%") })
-      : gsap.fromTo(
-          photo,
-          { clipPath: "inset(100% 0% 0% 0%)" },
-          { clipPath: "inset(0% 0% 0% 0%)", duration: 1.1, ease: "expo.out", scrollTrigger: once(photo, "top 92%") },
-        ),
-  );
-  return () => tweens.forEach((t) => (t.scrollTrigger?.kill(), t.kill()));
-}
-
-/* ---------------------------------------------------------------------------------------- */
-/* Enquiry — runway takeoff (scrubbed on desktop, played once below it)                      */
-/* ---------------------------------------------------------------------------------------- */
-
-/**
- * One progress value p (0 → 1) drives the scene (components/fx/RunwayTakeoff.tsx):
- *   0–0.35    edge lights come on towards the horizon; the plane rolls forward, scaling up a little
- *   0.35–0.55 rotation: the nose pitches up 12°
- *   0.55–1    lift-off: the plane climbs to the top-right along the contrail path, shrinking; the
- *             contrail draws, the photo zooms 1 → 1.08 and the navy overlay lightens.
- * The markup holds the final frame (reduced motion / no JS); this rewinds and drives it.
- */
-export function setupRunway(section: HTMLElement, c: Conditions): Cleanup {
-  const panel = section.querySelector<HTMLElement>("[data-runway-panel]");
-  const scene = panel?.querySelector<HTMLElement>("[data-takeoff-scene]")?.firstElementChild as HTMLElement | null | undefined;
-  const plane = panel?.querySelector<HTMLElement>("[data-takeoff-plane]");
-  const trail = panel?.querySelector<SVGPathElement>("[data-takeoff-trail]");
-  const photo = panel?.querySelector<HTMLElement>("[data-takeoff-photo]");
-  const overlay = panel?.querySelector<HTMLElement>("[data-takeoff-overlay]");
-  const lights = panel ? $$(panel, "[data-runway-light]") : [];
-  if (!panel || !scene || !plane || !trail) return noop;
-
-  const saved = { plane: plane.style.transform, photo: photo?.style.transform ?? "" };
-  const START = TAKEOFF.start;
-  const ROLL_END = TAKEOFF.rollEnd;
-  const steps = lights.length ? Math.max(...lights.map((l) => Number(l.dataset.runwayLight))) + 1 : 0;
-  let length = 0;
-  let litCount = -1;
-
-  const render = (p: number) => {
-    length ||= trail.getTotalLength();
-    const unit = scene.offsetWidth / 100; // scene units → px (x and y share the unit)
-    const roll = clamp01(p / 0.35);
-    const pitch = clamp01((p - 0.35) / 0.2);
-    const climb = clamp01((p - 0.55) / 0.45);
-
-    const lit = Math.round(roll * steps);
-    if (lit !== litCount) {
-      litCount = lit;
-      lights.forEach((l) => (l.style.opacity = Number(l.dataset.runwayLight) < lit ? "1" : "0.15"));
-    }
-
-    let x: number = START.x;
-    let y = lerp(START.y, ROLL_END, roll * roll); // accelerating roll
-    let scale = lerp(1, 1.06, roll);
-    let rotation = -12 * pitch;
-    if (climb > 0) {
-      const pt = trail.getPointAtLength(climb * length);
-      x = pt.x;
-      y = pt.y;
-      scale = lerp(1.06, TAKEOFF.endScale, climb);
-      rotation = lerp(-12, -14, climb);
-    }
-    gsap.set(plane, { xPercent: -50, yPercent: -50, x: (x - START.x) * unit, y: (y - START.y) * unit, scale, rotation });
-    trail.style.strokeDashoffset = String(1 - climb);
-    if (photo) gsap.set(photo, { scale: 1 + 0.08 * climb });
-    if (overlay) overlay.style.opacity = String(lerp(0.78, 0.55, climb));
-  };
-
-  const state = { p: 0 };
-  render(0);
-  const tween = c.desktop
-    ? gsap.to(state, {
-        p: 1,
-        ease: "none",
-        onUpdate: () => render(state.p),
-        // ends as the sticky panel lets go (section bottom ≈ 110% of the viewport)
-        scrollTrigger: { trigger: section, start: "top 70%", end: "bottom 110%", scrub: 1, onRefresh: () => render(state.p) },
-      })
-    : gsap.to(state, { p: 1, duration: 2.5, ease: "power1.inOut", paused: true, onUpdate: () => render(state.p) });
-  const st = c.desktop ? null : ScrollTrigger.create({ ...once(panel, "top 70%"), onEnter: () => void tween.play() });
-
-  return () => {
-    st?.kill();
-    tween.scrollTrigger?.kill();
-    tween.kill();
-    gsap.set([plane, photo].filter(Boolean), { clearProps: "transform" });
-    plane.style.transform = saved.plane;
-    if (photo) photo.style.transform = saved.photo;
-    trail.style.strokeDashoffset = "";
-    if (overlay) overlay.style.opacity = "";
-    lights.forEach((l) => (l.style.opacity = ""));
-  };
-}
-
-/* ---------------------------------------------------------------------------------------- */
-/* Counselling — the clouds part and the photo zooms (take-off feel)                         */
+/* Counselling — the photo zooms slightly                                                    */
 /* ---------------------------------------------------------------------------------------- */
 
 export function setupCounselling(section: HTMLElement): Cleanup {
-  const left = section.querySelector('[data-cloud="cta-left"]');
-  const right = section.querySelector('[data-cloud="cta-right"]');
   const photo = section.querySelector("[data-cta-photo]");
-  const tl = gsap.timeline({ scrollTrigger: { trigger: section, start: "top 95%", end: "top 20%", scrub: 0.4 } });
-  if (left) tl.fromTo(left, { xPercent: 0, opacity: 1 }, { xPercent: -75, opacity: 0.15, ease: "power1.in" }, 0);
-  if (right) tl.fromTo(right, { xPercent: 0, opacity: 1 }, { xPercent: 75, opacity: 0.15, ease: "power1.in" }, 0);
-  if (photo) tl.fromTo(photo, { scale: 1 }, { scale: 1.08, ease: "none" }, 0);
-  return () => (tl.scrollTrigger?.kill(), tl.kill(), gsap.set([left, right, photo].filter(Boolean), { clearProps: "all" }));
+  if (!photo) return noop;
+  const tween = gsap.fromTo(
+    photo,
+    { scale: 1 },
+    { scale: 1.08, ease: "none", scrollTrigger: { trigger: section, start: "top 95%", end: "top 20%", scrub: 0.4 } },
+  );
+  return () => (tween.scrollTrigger?.kill(), tween.kill(), gsap.set(photo, { clearProps: "all" }));
 }
 
 /* ---------------------------------------------------------------------------------------- */
@@ -624,7 +407,7 @@ export function setupWordmark(footer: HTMLElement): Cleanup {
   mark.textContent = "";
   const letters = Array.from(text).map((ch) => {
     const el = document.createElement("span");
-    el.textContent = ch === " " ? " " : ch;
+    el.textContent = ch === " " ? " " : ch;
     el.style.display = "inline-block";
     mark.append(el);
     return el;

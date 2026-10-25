@@ -1,5 +1,5 @@
-// Builds derived media: favicons for app/, the OG image, and 540x960 poster frames
-// for testimonials whose original poster is low-res.
+// Builds derived media: favicons for app/, the OG image, 540x960 poster frames
+// for testimonials whose original poster is low-res, and the faculty cut-outs.
 // Usage: node scripts/media/derived-assets.mjs   (FFMPEG_PATH overrides the ffmpeg binary)
 import fs from "node:fs";
 import path from "node:path";
@@ -47,3 +47,6 @@ if (!fs.existsSync(ffmpeg)) {
     console.log(`testimonials/${slug}-frame.webp`);
   }
 }
+
+// 4) Faculty cut-outs (studio backdrop keyed out)
+await import("./faculty-cutouts.mjs");
