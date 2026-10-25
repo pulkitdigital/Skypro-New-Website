@@ -304,7 +304,7 @@ Only `transform`, `opacity` and `clip-path` are animated. Every element that is 
 | # | Field (label verbatim) | Control | Validation (zod) | Error message |
 |---|---|---|---|---|
 | 1 | Full Name* | text, `autocomplete="name"` | trimmed, 2–80 chars, letters, spaces, `.`, `'` and `-` only | "Please enter your full name." |
-| 2 | Mobile No.* | tel, `inputmode="numeric"`, `autocomplete="tel-national"`, prefix "+91" shown | strip spaces, `-`, a leading `+91`/`91`/`0`; then `/^[6-9]\d{9}$/` | "Enter a valid 10-digit Indian mobile number." |
+| 2 | Mobile No.* | two fields: country-code Select (default India +91, `data/countryCodes.ts`) + tel input, `autocomplete="tel-national"` | strip spaces, `-`, a pasted `+code`/`00code` (or `91` for India) and a trunk `0`; India `/^[6-9]\d{9}$/`, elsewhere 6–14 digits (≤ 15 with the code) | "Enter a valid mobile number." |
 | 3 | Email Address* | email, `autocomplete="email"` | `z.email()` | "Enter a valid email address." |
 | 4 | Current Education Qualification* | Select | one of: 10th · 12th Appearing · 12th Pass · Graduation | "Please choose an option." |
 | 5 | State* | Select (typeahead) | one of the 36 states/UTs (CE §14) | "Please choose your state." |

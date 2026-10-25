@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CountryCodeField } from "./CountryCodeField";
 import { enquiryDefaults, enquirySchema, type EnquiryValues } from "./enquirySchema";
 import { submitEnquiry } from "./submitEnquiry";
 import { FieldShell, gridClass, inputClass, labelClass, optionClass } from "./formLayout";
@@ -128,6 +129,8 @@ export function EnquiryForm() {
     handleSubmit,
     reset,
     watch,
+    trigger,
+    getFieldState,
     formState: { errors },
   } = useForm<EnquiryValues>({
     resolver: zodResolver(enquirySchema),
@@ -261,25 +264,41 @@ export function EnquiryForm() {
             <FieldError id="enquiry-name-error" message={errors.name?.message} />
           </FieldShell>
           <FieldShell label={f.mobile.label} htmlFor="enquiry-mobile">
-            <div className="relative">
-              <span aria-hidden className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 font-mono text-[14px] text-navy/80">
-                +91
-              </span>
+            {/* Country code, then the number */}
+            <div className="flex gap-2">
+              <Controller
+                control={control}
+                name="mobile.country"
+                render={({ field }) => (
+                  <CountryCodeField
+                    id="enquiry-mobile-country"
+                    label={f.mobile.countryLabel}
+                    value={field.value}
+                    onChange={(value) => {
+                      field.onChange(value);
+                      if (getFieldState("mobile.number").isTouched) void trigger("mobile.number");
+                    }}
+                    onBlur={field.onBlur}
+                    inputRef={field.ref}
+                    disabled={busy}
+                  />
+                )}
+              />
               <input
                 id="enquiry-mobile"
                 type="tel"
                 inputMode="tel"
                 autoComplete="tel-national"
-                maxLength={16}
+                maxLength={18}
                 placeholder={f.mobile.placeholder}
                 aria-required
                 aria-invalid={!!errors.mobile}
                 aria-describedby={describedBy("mobile")}
-                className={cn(inputClass, "pl-14")}
-                {...register("mobile")}
+                className={cn(inputClass, "min-w-0")}
+                {...register("mobile.number")}
               />
             </div>
-            <FieldError id="enquiry-mobile-error" message={errors.mobile?.message} />
+            <FieldError id="enquiry-mobile-error" message={errors.mobile?.number?.message} />
           </FieldShell>
           <FieldShell label={f.email.label} htmlFor="enquiry-email">
             <input

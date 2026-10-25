@@ -1,4 +1,4 @@
-import { normaliseMobile, type EnquiryValues } from "./enquirySchema";
+import { formatMobile, type EnquiryValues } from "./enquirySchema";
 
 const ENDPOINT = process.env.NEXT_PUBLIC_FORM_ENDPOINT ?? "";
 const TIMEOUT_MS = 15_000;
@@ -6,7 +6,7 @@ const TIMEOUT_MS = 15_000;
 export function buildPayload(values: EnquiryValues) {
   return new URLSearchParams({
     name: values.name.trim(),
-    mobile: normaliseMobile(values.mobile),
+    mobile: formatMobile(values.mobile),
     email: values.email.trim(),
     qualification: values.qualification,
     state: values.state,

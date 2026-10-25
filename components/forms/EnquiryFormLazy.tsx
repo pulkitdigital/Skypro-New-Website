@@ -32,7 +32,12 @@ function FormSkeleton() {
       <p className="sr-only">&nbsp;</p>
       <div className={gridClass}>
         <FieldShell label={f.name.label}>{box}</FieldShell>
-        <FieldShell label={f.mobile.label}>{box}</FieldShell>
+        <FieldShell label={f.mobile.label}>
+          <span className="flex gap-2">
+            <span className={cn(inputClass, "block w-[112px] shrink-0")} />
+            {box}
+          </span>
+        </FieldShell>
         <FieldShell label={f.email.label}>{box}</FieldShell>
         <FieldShell label={f.qualification.label}>{box}</FieldShell>
         <FieldShell label={f.state.label}>{box}</FieldShell>

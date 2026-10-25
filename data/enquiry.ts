@@ -4,7 +4,7 @@ export const enquiryForm = {
   intro: "Share your details and our team will contact you shortly.",
   fields: {
     name: { label: "Full Name*", placeholder: "Enter your full name" },
-    mobile: { label: "Mobile No.*", placeholder: "Enter your mobile no." },
+    mobile: { label: "Mobile No.*", placeholder: "Enter your mobile no.", countryLabel: "Country code" },
     email: { label: "Email Address*", placeholder: "name@example.com" },
     qualification: { label: "Current Education Qualification*", placeholder: "—Please choose an option—" },
     state: { label: "State*", placeholder: "—Please choose an option—" },

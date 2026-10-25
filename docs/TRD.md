@@ -351,7 +351,7 @@ EnquiryForm (RHF, zodResolver(enquirySchema), mode: "onTouched")
 ```
 
 - **Why `no-cors` + form-encoding:** Apps Script web apps don't answer CORS preflights. A "simple" form-encoded POST needs no preflight, and Apps Script reads it from `e.parameter`. The cost is that the response is opaque, so server-side validation errors cannot be shown. Validation is fully client-side, and Apps Script should still sanity-check its input.
-- **Normalisation:** mobile → 10 digits; `interest` → `"DGCA Ground Classes (CPL), Flying Training"`; `consent` → `"yes"`; strings trimmed.
+- **Normalisation:** mobile → `"+<code> <national number>"`, e.g. `"+91 9829012345"`; `interest` → `"DGCA Ground Classes (CPL), Flying Training"`; `consent` → `"yes"`; strings trimmed.
 - **Apps Script contract** (sample `doPost(e)` provided in README): append a row `[submittedAt, name, mobile, email, qualification, state, city, interest, start, question, consent, source, pageUrl]` to a Sheet and optionally `MailApp.sendEmail` to info@skyproaviation.org. Deploy as *Web app → Execute as: Me → Who has access: Anyone*.
 - **Spam:** honeypot + a minimum fill time of 3s (`startedAt` ref). reCAPTCHA is not used (the live site has it; adding it would need a key and a backend check, so it is out of scope).
 
@@ -470,7 +470,7 @@ AddType application/manifest+json .webmanifest
 - `no-redirect.spec.ts`: click every `header a`, `footer a`, course/blog "Read More" and dropdown item. Assert `page.url()` is unchanged, no `popup` event, and `scrollY` is unchanged (except Enquire CTAs).
 - `enquire-scroll.spec.ts`: each Enquire/Enroll CTA → `#enquiry` in view, and focus is on the Full Name field.
 - `whatsapp.spec.ts`: the button is hidden on the hero and visible after it. `href === "https://wa.me/918955804726"`, `target=_blank`, `rel` includes `noopener`.
-- `form.spec.ts`: required errors, invalid mobile (`12345`, `5123456789`), valid `+91 98290 12345` → normalised; interest ≥ 1; consent required; honeypot → no `console.info`; empty endpoint → Success + payload logged.
+- `form.spec.ts`: required errors, invalid mobile (`12345`, `5123456789`), valid `+91 98290 12345` → `+91 9829012345`; another country (UK `07911 123456` → `+44 7911123456`); interest ≥ 1; consent required; honeypot → no `console.info`; empty endpoint → Success + payload logged.
 - `screenshots.spec.ts`: full-page at **1440 / 1280 / 768 / 375**, with motion disabled (`reducedMotion: "reduce"`) for deterministic captures, plus a motion-on 1440 run for review.
 - `a11y.spec.ts`: axe-core with zero serious/critical violations. Keyboard pass through nav dropdowns, Sheet, Accordion, Select, tabs and dialogs.
 - `overflow.spec.ts`: `document.documentElement.scrollWidth <= innerWidth` at 320, 375, 768, 1280 and 1440.

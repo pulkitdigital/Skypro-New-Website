@@ -61,20 +61,42 @@ test.describe("enquiry form", () => {
     await expect(page.locator("#enquiry-summary")).toHaveText("Please fix 9 fields highlighted below.");
     await expect(page.locator("#enquiry-name")).toBeFocused();
     await expect(page.locator("#enquiry-name")).toHaveAttribute("aria-invalid", "true");
-    await expect(page.getByText("Enter a valid 10-digit Indian mobile number.")).toBeVisible();
+    await expect(page.getByText("Enter a valid mobile number.")).toBeVisible();
     await expect(page.getByText("Select at least one option.")).toBeVisible();
     await expect(page.getByText("Please agree so we can contact you.")).toBeVisible();
   });
 
   for (const bad of ["12345", "5123456789", "+44 7911 123456"]) {
-    test(`rejects invalid mobile "${bad}"`, async ({ page }) => {
+    test(`rejects invalid mobile "${bad}" for India`, async ({ page }) => {
       await gotoForm(page);
       await fillValid(page, bad);
       await page.getByRole("button", { name: "Submit Enquiry" }).click();
-      await expect(page.getByText("Enter a valid 10-digit Indian mobile number.")).toBeVisible();
+      await expect(page.getByText("Enter a valid mobile number.")).toBeVisible();
       await expect(page.getByText(/Thank you/)).toHaveCount(0);
     });
   }
+
+  test("country code defaults to +91 and another country can be picked", async ({ page }) => {
+    const logs: string[] = [];
+    page.on("console", (m) => logs.push(m.text()));
+    await gotoForm(page);
+    await page.waitForTimeout(3000);
+    const country = page.locator("#enquiry-mobile-country");
+    await expect(country).toHaveValue("+91");
+    await fillValid(page, "07911 123456");
+    // type a name, click a match
+    await country.fill("united s");
+    await page.getByRole("option", { name: "United States (+1)" }).click();
+    await expect(country).toHaveValue("+1");
+    // type a code, Enter takes the top match
+    await country.fill("+44");
+    await expect(page.getByRole("option").first()).toHaveText("United Kingdom (+44)");
+    await country.press("Enter");
+    await expect(country).toHaveValue("+44");
+    await page.getByRole("button", { name: "Submit Enquiry" }).click();
+    await expect(page.getByText("Thank you, Test!")).toBeVisible({ timeout: 6000 });
+    expect(logs.find((l) => l.includes("[enquiry]")) ?? "").toContain('"mobile":"+44 7911123456"');
+  });
 
   test("valid submit (no endpoint configured) logs the payload and shows success", async ({ page }) => {
     const logs: string[] = [];
@@ -86,7 +108,7 @@ test.describe("enquiry form", () => {
     await expect(page.getByText("Thank you, Test!")).toBeVisible({ timeout: 6000 });
     await expect(page.getByText("We have received your enquiry. Our team will contact you shortly.")).toBeVisible();
     const payload = logs.find((l) => l.includes("[enquiry]")) ?? "";
-    expect(payload).toContain('"mobile":"9829012345"');
+    expect(payload).toContain('"mobile":"+91 9829012345"');
     expect(payload).toContain('"interest":"DGCA Ground Classes (CPL)"');
     expect(payload).toContain('"source":"homepage"');
     await page.getByRole("button", { name: "Send another enquiry" }).click();
